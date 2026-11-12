@@ -1,0 +1,42 @@
+{
+  "name": "arafix",
+  "version": "1.0.0",
+  "description": "Zero-dependency CLI + library that makes Arabic text display correctly in any terminal — contextual shaping to Arabic Presentation Forms + simplified BiDi reordering. Wraps any command (AI CLIs included) and fixes its Arabic output live.",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "arafix": "bin/arafix.js"
+  },
+  "files": [
+    "index.js",
+    "bin/arafix.js"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "keywords": [
+    "arabic",
+    "terminal",
+    "bidi",
+    "rtl",
+    "shaping",
+    "cli",
+    "windows",
+    "arabtex",
+    "presentation-forms"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shadow1t/arafix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shadow1t/arafix/issues"
+  },
+  "homepage": "https://github.com/shadow1t/arafix#readme",
+  "license": "MIT",
+  "author": "Rasheed (shadow1t)"
+}
