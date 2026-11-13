@@ -107,8 +107,12 @@ function claude { arafix -- claude @args }
 - ✅ **مخرجات البرنامج** (الردود) — هذه مجال arafix وتُصلح كاملة.
 
 لعرض سليم أثناء الكتابة أيضًا، استخدم تيرمنالًا يدعم BiDi أصلًا:
-[WezTerm](https://wezterm.org/) أو [kitty](https://sw.kovidgoyal.net/kitty/) أو
-[mintty](https://mintty.github.io/) — وفي هذه الحالة لن تحتاج arafix أصلًا.
+[WezTerm](https://wezterm.org/) أو [mintty](https://mintty.github.io/) أو
+[Konsole](https://konsole.kde.org/) — وفي هذه الحالة لن تحتاج arafix أصلًا.
+على ويندوز هناك أيضًا [EasyTer](https://github.com/jaqop/EasyTer) — تيرمنال مصمم
+خصيصًا لعرض العربية المتصلة على ويندوز. تنبيه مهم: Windows Terminal و kitty
+**لا يطبقان** خوارزمية BiDi الكاملة حتى الآن (النص المختلط يظهر مشوشًا فيهما)،
+و mintty مضمّن مع Git for Windows (خيار Text ← BiDi).
 الفائدة الحقيقية لـ arafix هي للتيرمنالات **بدون** دعم BiDi، مثل CMD و
 Windows Console القديمة وبعض التيرمنالات عبر SSH.
 
@@ -192,9 +196,10 @@ Options: `-s/--strip-tashkeel`, `--dir=auto|rtl|ltr`, `--no-force-color`, `-h`, 
 What **you type** is echoed by the terminal itself before any program sees it — no external
 tool can change that rendering. What you type always reaches the program intact, and all
 program **output** is what arafix fixes. For correct typed-echo rendering use a BiDi-native
-terminal: [WezTerm](https://wezterm.org/), [kitty](https://sw.kovidgoyal.net/kitty/), or
-[mintty](https://mintty.github.io/). arafix shines on terminals **without** BiDi support
-(classic Windows console, some SSH setups).
+terminal: [WezTerm](https://wezterm.org/), [mintty](https://mintty.github.io/), or
+[Konsole](https://konsole.kde.org/) — on Windows also [EasyTer](https://github.com/jaqop/EasyTer).
+Note: Windows Terminal and kitty do not implement full BiDi yet. arafix shines on
+terminals **without** BiDi support (classic Windows console, some SSH setups).
 
 ### Development
 

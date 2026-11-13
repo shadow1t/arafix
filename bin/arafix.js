@@ -42,7 +42,7 @@ Zero-dependency Arabic terminal display fixer (shaping + BiDi).
 ملاحظة مهمة عن الكتابة أثناء الطباعة: عرض ما تكتبه لحظة الكتابة
 يرسمه التيرمنال نفسه قبل أي برنامج، فلا يمكن لأداة خارجية تغييره —
 لكن ما تكتبه يصل للبرنامج سليمًا دائمًا. للعرض السليم أثناء الكتابة
-استخدم تيرمنال يدعم BiDi مثل WezTerm أو kitty أو mintty.
+استخدم تيرمنال يدعم BiDi مثل WezTerm أو mintty أو Konsole.
 
 English: fixes Arabic output of any command for non-BiDi terminals
 (filter mode, or wrapper mode: "arafix -- <cmd> [args]"). Typed-input
