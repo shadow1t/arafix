@@ -138,13 +138,13 @@ export function shapeClusters(clusters) {
     const next = i + 1 < clusters.length ? clusters[i + 1] : null;
     const nb = next ? next.base : null;
 
-    // لام-ألف: حرف مركّب واحد (يأخذ meta الخاص باللام)
+    // لام-ألف: حرف مركّب واحد (يحافظ على حقول عنقود اللام كاملة)
     if (base === '\u0644' && nb !== null && LAM_ALEF_FORMS.has(nb)) {
       const connectPrev = prevBase !== null && DUAL_JOINING.has(prevBase);
       out.push({
+        ...c,
         base: LAM_ALEF_FORMS.get(nb)[connectPrev ? 1 : 0],
-        rest: c.rest + next.rest,
-        meta: c.meta,
+        rest: c.rest + (next ? next.rest : ''),
       });
       i++; // الألف استُهلكت داخل المركّب
       prevBase = nb; // الألف لا تتصل بما بعدها
@@ -156,10 +156,10 @@ export function shapeClusters(clusters) {
       const connectNext =
         DUAL_JOINING.has(base) && nb !== null && ARABIC_FORMS.has(nb);
       const idx = (connectNext ? 2 : 0) + (connectPrev ? 1 : 0);
-      out.push({ base: ARABIC_FORMS.get(base)[idx], rest: c.rest, meta: c.meta });
+      out.push({ ...c, base: ARABIC_FORMS.get(base)[idx] });
       prevBase = base;
     } else {
-      out.push({ base, rest: c.rest, meta: c.meta });
+      out.push(c); // العنقود كما هو — مع كل حقوله الإضافية
       prevBase = null; // الفراغ واللاتيني وغيره يقطعان الوصل
     }
   }
