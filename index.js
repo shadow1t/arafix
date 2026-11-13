@@ -124,11 +124,11 @@ export function splitClusters(text) {
 // ---------------------------------------------------------------------------
 
 /**
- * تحويل الحروف العربية إلى صورها العرضية السياقية (Presentation Forms)
- * بالترتيب المنطقي نفسه: مبتدئة/وسطية/نهائية/معزولة + حروف لام-ألف المركّبة.
+ * التشكيل على مستوى العناقيد — كل عنقود {base, rest, meta?}:
+ * نفس خوارزمية shapeArabic لكنها تحافظ على meta المرافق لكل عنقود
+ * (تستخدمها fixLineParts لتتبع الأنماط/الألوان أثناء الترتيب البصري).
  */
-export function shapeArabic(text) {
-  const clusters = splitClusters(text);
+export function shapeClusters(clusters) {
   const out = [];
   let prevBase = null; // آخر حرف قابل للوصل بما بعده
 
@@ -138,10 +138,14 @@ export function shapeArabic(text) {
     const next = i + 1 < clusters.length ? clusters[i + 1] : null;
     const nb = next ? next.base : null;
 
-    // لام-ألف: حرف مركّب واحد
+    // لام-ألف: حرف مركّب واحد (يأخذ meta الخاص باللام)
     if (base === '\u0644' && nb !== null && LAM_ALEF_FORMS.has(nb)) {
       const connectPrev = prevBase !== null && DUAL_JOINING.has(prevBase);
-      out.push(LAM_ALEF_FORMS.get(nb)[connectPrev ? 1 : 0] + c.rest + next.rest);
+      out.push({
+        base: LAM_ALEF_FORMS.get(nb)[connectPrev ? 1 : 0],
+        rest: c.rest + next.rest,
+        meta: c.meta,
+      });
       i++; // الألف استُهلكت داخل المركّب
       prevBase = nb; // الألف لا تتصل بما بعدها
       continue;
@@ -152,14 +156,25 @@ export function shapeArabic(text) {
       const connectNext =
         DUAL_JOINING.has(base) && nb !== null && ARABIC_FORMS.has(nb);
       const idx = (connectNext ? 2 : 0) + (connectPrev ? 1 : 0);
-      out.push(ARABIC_FORMS.get(base)[idx] + c.rest);
+      out.push({ base: ARABIC_FORMS.get(base)[idx], rest: c.rest, meta: c.meta });
       prevBase = base;
     } else {
-      out.push(base + c.rest);
+      out.push({ base, rest: c.rest, meta: c.meta });
       prevBase = null; // الفراغ واللاتيني وغيره يقطعان الوصل
     }
   }
-  return out.join('');
+  return out;
+}
+
+/**
+ * تحويل الحروف العربية إلى صورها العرضية السياقية (Presentation Forms)
+ * بالترتيب المنطقي نفسه: مبتدئة/وسطية/نهائية/معزولة + حروف لام-ألف المركّبة.
+ */
+export function shapeArabic(text) {
+  const clusters = shapeClusters(splitClusters(text));
+  let out = '';
+  for (const c of clusters) out += c.base + c.rest;
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -185,12 +200,12 @@ function classifyChar(ch) {
 }
 
 /**
- * إعادة ترتيب النص (بعد التشكيل) إلى الترتيب البصري الصحيح.
- * dir: 'auto' (افتراضي: أول حرف قوي، وإلا RTL) أو 'rtl' أو 'ltr'.
+ * إعادة الترتيب على مستوى العناقيد: نفس خوارزمية bidiReorder لكنها
+ * تعيد عناقيد {base, rest, meta} في الترتيب البصري مع مرآة الأقواس،
+ * ويحافظ على meta (تستخدمها fixLineParts).
  */
-export function bidiReorder(text, dir = 'auto') {
-  const clusters = splitClusters(text);
-  if (clusters.length === 0) return text;
+export function reorderClusters(clusters, dir = 'auto') {
+  if (clusters.length === 0) return [];
   const classes = clusters.map((c) => classifyChar(c.base));
 
   let P;
@@ -251,26 +266,34 @@ export function bidiReorder(text, dir = 'auto') {
   const order = runs.map((_, k) => k);
   if (P === 'R') order.reverse();
 
-  const pieces = [];
+  const out = [];
   for (const k of order) {
     const r = runs[k];
     if (pos[k] !== 'R' || r.kind === 'N') {
       // LTR موضعيًا أو مقطع رقمي: يبقى ترتيبه الداخلي كما هو
-      let s = '';
-      for (let idx = r.from; idx < r.to; idx++) s += clusters[idx].base + clusters[idx].rest;
-      pieces.push(s);
+      for (let idx = r.from; idx < r.to; idx++) out.push(clusters[idx]);
     } else {
       // مقطع RTL: اعكس العناقيد مع مرآة الأقواس
-      let s = '';
       for (let idx = r.to - 1; idx >= r.from; idx--) {
         const c = clusters[idx];
         const m = MIRROR[c.base];
-        s += (m !== undefined ? m : c.base) + c.rest;
+        out.push(m !== undefined ? { ...c, base: m } : c);
       }
-      pieces.push(s);
     }
   }
-  return pieces.join('');
+  return out;
+}
+
+/**
+ * إعادة ترتيب النص (بعد التشكيل) إلى الترتيب البصري الصحيح.
+ * dir: 'auto' (افتراضي: أول حرف قوي، وإلا RTL) أو 'rtl' أو 'ltr'.
+ */
+export function bidiReorder(text, dir = 'auto') {
+  const clusters = reorderClusters(splitClusters(text), dir);
+  if (clusters.length === 0) return text;
+  let out = '';
+  for (const c of clusters) out += c.base + c.rest;
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -300,6 +323,62 @@ export function fixLine(line, options = {}) {
     if (k % 2 === 1) { out += parts[k]; continue; } // مقطع ANSI — يبقى كما هو
     if (parts[k] === '') continue;
     out += bidiReorder(shapeArabic(parts[k]), options.dir || 'auto');
+  }
+  return out;
+}
+
+/**
+ * إصلاح سطر مقسوم إلى مقاطع منمّطة (نص + meta لكل مقطع) — مصممة لراسمات
+ * التيرمنال: تعيد مقاطع بالترتيب البصري الصحيح مع التصاق النمط (اللون)
+ * بنصه أثناء إعادة الترتيب. تُدمج المقاطع المتجاورة ذات الـ meta نفسه
+ * (المقارنة بـ ===، فمرّر نفس مرجع الكائن للنمط الواحد).
+ *
+ * مثال: fixLineParts([{ text: 'مرحبا', meta: styleRed }, { text: ' world', meta: styleBlue }])
+ */
+export function fixLineParts(parts, options = {}) {
+  if (!Array.isArray(parts)) {
+    throw new TypeError(`fixLineParts: expected an array of parts, got ${parts === null ? 'null' : typeof parts}`);
+  }
+
+  // تنظيف النصوص (محارف خفية دائمًا + تشكيل عند الطلب) مع الحفاظ على meta
+  const clean = [];
+  let hasArabic = false;
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (typeof p !== 'object' || p === null || typeof p.text !== 'string') {
+      throw new TypeError(`fixLineParts: parts[${i}] must be { text: string, meta }`);
+    }
+    let s = p.text.replace(INVISIBLE_RE, '');
+    if (options.stripTashkeel) s = s.replace(TASHKEEL_RE, '');
+    hasArabic = hasArabic || containsArabic(s);
+    if (s !== '') clean.push({ text: s, meta: p.meta });
+  }
+  if (!hasArabic) {
+    // لا عربية: المقاطع كما هي (منظفة) مع دمج المتجاورة بنفس meta
+    const flat = [];
+    for (const p of clean) {
+      const last = flat[flat.length - 1];
+      if (last && last.meta === p.meta) last.text += p.text;
+      else flat.push({ text: p.text, meta: p.meta });
+    }
+    return flat;
+  }
+
+  // عناقيد تحمل meta → تشكيل → ترتيب بصري
+  const clusters = [];
+  for (const p of clean) {
+    for (const c of splitClusters(p.text)) {
+      clusters.push({ base: c.base, rest: c.rest, meta: p.meta });
+    }
+  }
+  const visual = reorderClusters(shapeClusters(clusters), options.dir || 'auto');
+
+  // دمج المتجاورين بنفس meta وإخراج المقاطع النهائية
+  const out = [];
+  for (const c of visual) {
+    const last = out[out.length - 1];
+    if (last && last.meta === c.meta) last.text += c.base + c.rest;
+    else out.push({ text: c.base + c.rest, meta: c.meta });
   }
   return out;
 }

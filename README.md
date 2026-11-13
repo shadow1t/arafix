@@ -126,9 +126,10 @@ Windows Console القديمة وبعض التيرمنالات عبر SSH.
 ## كمكتبة (Library)
 
 ```js
-import { fixLine, shapeArabic, bidiReorder, containsArabic, splitClusters, stripTashkeel } from 'arafix';
+import { fixLine, fixLineParts, shapeArabic, bidiReorder, containsArabic, splitClusters, stripTashkeel } from 'arafix';
 
 fixLine('مرحبا');        // النص جاهز للعرض في أي تيرمنال
+fixLineParts([{ text: 'مرحبا', meta: red }, { text: ' world', meta: blue }]); // لراسمات التيرمنال: الأنماط تبقى ملتصقة بنصها بعد الترتيب البصري
 shapeArabic('مرحبا');    // التشكيل فقط، بالترتيب المنطقي
 bidiReorder('...');      // الترتيب البصري فقط
 ```
@@ -136,6 +137,7 @@ bidiReorder('...');      // الترتيب البصري فقط
 | الدالة | الوصف |
 |---|---|
 | `fixLine(line, options?)` | الإصلاح الكامل لسطر واحد: محارف خفية + تشكيل + ترتيب بصري |
+| `fixLineParts(parts, options?)` | مثل fixLine لكن لسطر مقسوم إلى مقاطع منمّطة (نص + meta) — يعيد المقاطع بالترتيب البصري مع التصاق النمط بنصه (مصممة لراسمات التيرمنال) |
 | `shapeArabic(text)` | التشكيل السياقي إلى Presentation Forms (ترتيب منطقي) |
 | `bidiReorder(text, dir?)` | إعادة ترتيب BiDi مبسّطة وفق UAX #9 |
 | `containsArabic(text)` | هل يحتوي النص حروفًا عربية؟ |

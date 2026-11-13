@@ -1,6 +1,6 @@
 {
   "name": "arafix",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Zero-dependency CLI + library that makes Arabic text display correctly in any terminal — contextual shaping to Arabic Presentation Forms + simplified BiDi reordering. Wraps any command (AI CLIs included) and fixes its Arabic output live.",
   "type": "module",
   "main": "index.js",
