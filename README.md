@@ -84,6 +84,13 @@ function claude { arafix -- claude @args }
 ## على ويندوز
 
 - شغّل `chcp 65001` لتفعيل UTF-8 في CMD/PowerShell (أو أضفها في ملف الـ profile).
+- **مهم لـ Windows PowerShell 5.1** (الـ `powershell` الأزرق وليس `pwsh`): الأنبوب
+  إلى البرامج الخارجية يتم بترميز ASCII افتراضيًا، فتتحول العربية إلى `?????`
+  قبل أن تصل إلى arafix. الحل — أضف في `$PROFILE`:
+  ```powershell
+  $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+  ```
+  (PowerShell 7+ يعمل بـ UTF-8 افتراضيًا ولا يحتاج هذا السطر.)
 - استخدم خطًا يدعم Arabic Presentation Forms مثل **Cascadia Mono** أو **Noto Naskh Arabic**
   أو **Consolas** مع fallback عربي.
 - `arafix` تعمل مع CMD و PowerShell و Windows Terminal و Git Bash.
@@ -190,6 +197,11 @@ function claude { arafix -- claude @args }   # PowerShell
 ```
 
 Options: `-s/--strip-tashkeel`, `--dir=auto|rtl|ltr`, `--no-force-color`, `-h`, `-v`.
+
+Windows PowerShell 5.1 note: pipes to native commands default to ASCII, turning Arabic
+into `?????` before arafix sees it. Add to `$PROFILE`:
+`$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8`
+(PowerShell 7+ is UTF-8 by default.)
 
 ### Honest limits: typed-input echo
 
